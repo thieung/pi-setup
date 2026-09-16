@@ -2,17 +2,23 @@
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-PROFILE="${1:-}"
+COMMAND="${1:-}"
 if [[ $# -gt 0 ]]; then shift; fi
 
-case "$PROFILE" in
-  pi|pi-dev) ;;
+case "$COMMAND" in
+  sync)
+    exec node "$ROOT/scripts/sync-source-extensions.mjs" "$@"
+    ;;
   list)
     printf '%s\n' pi pi-dev
     exit 0
     ;;
+  pi|pi-dev)
+    PROFILE="$COMMAND"
+    ;;
   *)
-    echo "usage: pi-profile <pi|pi-dev|list> [pi args...]" >&2
+    echo "usage: pi-profile <pi|pi-dev|list|sync> [args...]" >&2
+    echo "       pi-profile sync [--all] [--dry-run]" >&2
     exit 2
     ;;
 esac

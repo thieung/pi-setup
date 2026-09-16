@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "sources": [
+    {
+      "name": "9router-pi",
+      "enabled": false,
+      "repository": "https://github.com/luongnv89/pi-extensions.git",
+      "commit": "ca99973d1e9d3e030657adac9519fe2a80bf0699",
+      "subpath": "extensions/9router-pi"
+    },
+    {
+      "name": "subagents-pi",
+      "enabled": false,
+      "repository": "https://github.com/luongnv89/pi-extensions.git",
+      "commit": "ca99973d1e9d3e030657adac9519fe2a80bf0699",
+      "subpath": "extensions/subagents-pi"
+    }
+  ]
+}
