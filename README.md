@@ -14,21 +14,21 @@ This repo takes a different approach:
 - Pi runtime data is materialized per profile under `~/.pi/profiles/`.
 - `pi` is the stable daily-driver profile.
 - `pi-dev` inherits `pi` and adds experimental/local extensions.
-- npm extensions stay declarative in `settings.json` so Pi can reinstall them on another machine.
+- npm extensions are pinned in profile manifests so another machine can reproduce the same setup.
 - credentials, sessions, caches, and machine-specific state stay outside Git.
 
 The setup is inspired by three useful patterns:
 
 - [`mrgoonie/zuey-pi-setup`](https://github.com/mrgoonie/zuey-pi-setup): treat Pi configuration and the package list as a portable, diffable setup manifest.
 - [`thieung/pi-profile-manager`](https://github.com/thieung/pi-profile-manager): isolate profiles with `PI_CODING_AGENT_DIR` and `PI_CODING_AGENT_SESSION_DIR`.
-- [`luongnv89/pi-extensions`](https://github.com/luongnv89/pi-extensions): primary source for Pi extensions used in this setup.
+- [`luongnv89/pi-extensions`](https://github.com/luongnv89/pi-extensions): primary source for extensions used in this setup.
 
 ## Current profiles
 
-| Profile | Purpose | Inherits | Extra extensions |
+| Profile | Purpose | Inherits | Enabled extensions |
 |---|---|---|---|
-| `pi` | Stable daily work | Base config | None by default |
-| `pi-dev` | Extension development and testing | `pi` | Local/source extensions from `extensions/` |
+| `pi` | Stable daily work | Base config | `statusline-pi@1.3.1` |
+| `pi-dev` | Extension/provider testing | `pi` | stable set + `advisor-pi@1.1.0`, `opencode-pi@1.3.0`, local source overlay |
 
 The important design rule is:
 
@@ -36,316 +36,192 @@ The important design rule is:
 
 `pi-dev` is not a separate copy of the stable configuration. That keeps the two profiles from drifting apart.
 
+## Extension policy
+
+The enabled package set is intentionally small and pinned:
+
+```text
+pi
+└── statusline-pi@1.3.1
+
+pi-dev
+├── inherits pi
+├── advisor-pi@1.1.0
+├── opencode-pi@1.3.0
+└── extensions/        local/source experiments
+```
+
+Two additional components are tracked but not enabled by default:
+
+- `subagents-pi` — Pi subagent fleet telemetry; labs-only because the main orchestration workflow is handled elsewhere.
+- `pi-delegator` — delegation skill for launching monitored Pi subprocesses; labs-only for the same reason.
+
+Detailed documentation and upstream sources:
+
+- [`statusline-pi`](docs/extensions/statusline-pi.md)
+- [`advisor-pi`](docs/extensions/advisor-pi.md)
+- [`opencode-pi`](docs/extensions/opencode-pi.md)
+- [`subagents-pi`](docs/extensions/subagents-pi.md)
+- [`pi-delegator`](docs/extensions/pi-delegator.md)
+- [Extension index](docs/extensions/README.md)
+
 ## Architecture
 
 ```text
                          Git repository
-
-                  config/base/settings.json
-                            │
-                            ▼
-                  profiles/pi/profile.json
-                            │
-                   stable daily profile
-                            │
-                            ▼
-               profiles/pi-dev/profile.json
-                            │
-                  experimental overlay
-                            │
-             ┌──────────────┴──────────────┐
-             ▼                             ▼
-~/.pi/profiles/pi/              ~/.pi/profiles/pi-dev/
- settings.json                   settings.json
- sessions/                       sessions/
- .pi-setup.json                  .pi-setup.json
+                              │
+                     config/base/settings.json
+                              │
+                              ▼
+                    profiles/pi/profile.json
+                      stable daily profile
+                              │
+                              ▼
+                  profiles/pi-dev/profile.json
+                    experimental overlay
+                              │
+                    ┌─────────┴─────────┐
+                    ▼                   ▼
+              npm packages         extensions/
+                                   local/source
+                                   experiments
 ```
 
-At runtime the launcher sets:
+At runtime:
 
-```bash
-PI_PROFILE=<profile>
-PI_CODING_AGENT_DIR="$HOME/.pi/profiles/<profile>"
-PI_CODING_AGENT_SESSION_DIR="$HOME/.pi/profiles/<profile>/sessions"
+```text
+pi-profile pi
+   │
+   ├─ PI_CODING_AGENT_DIR=~/.pi/profiles/pi
+   └─ PI_CODING_AGENT_SESSION_DIR=~/.pi/profiles/pi/sessions
+
+pi-profile pi-dev
+   │
+   ├─ PI_CODING_AGENT_DIR=~/.pi/profiles/pi-dev
+   ├─ PI_CODING_AGENT_SESSION_DIR=~/.pi/profiles/pi-dev/sessions
+   └─ source extension overlay from ./extensions
 ```
 
-This isolates Pi configuration and sessions between profiles.
-
-It is **not** an OS-level sandbox. Profiles still share the same filesystem, repositories, credentials available to the process, ports, containers, and other machine resources.
-
-## Repository layout
+## Repository structure
 
 ```text
 pi-setup/
 ├── README.md
-├── .gitignore
 ├── bin/
-│   └── pi-profile                 profile launcher
+│   └── pi-profile
 ├── config/
 │   └── base/
-│       └── settings.json          stable Pi package/config manifest
+│       └── settings.json
+├── docs/
+│   └── extensions/
+│       ├── README.md
+│       ├── statusline-pi.md
+│       ├── advisor-pi.md
+│       ├── opencode-pi.md
+│       ├── subagents-pi.md
+│       └── pi-delegator.md
 ├── extensions/
-│   └── README.md                  local/experimental extension area
+│   └── README.md
 ├── profiles/
 │   ├── pi/
-│   │   └── profile.json           stable profile definition
+│   │   └── profile.json
 │   └── pi-dev/
-│       └── profile.json           development overlay
+│       └── profile.json
 └── scripts/
-    ├── bootstrap.sh               first-time machine setup
-    ├── install.sh                 installs the launcher
-    ├── render-profile.mjs         resolves profile inheritance
-    └── materialize-profile.mjs    writes runtime profile config
+    ├── bootstrap.sh
+    ├── install.sh
+    ├── materialize-profile.mjs
+    └── render-profile.mjs
 ```
 
 ## Requirements
 
-Current implementation targets macOS and Linux/VPS environments with:
+Current scripts expect:
 
-- Git
+- macOS or Linux
 - Bash
 - Node.js
 - Pi Coding Agent installed and available as `pi`
+- Git
 
-The bootstrap script intentionally does not own Node or Pi installation yet. This keeps the repository focused on Pi configuration and profile management rather than becoming a full machine-provisioning system.
+For `opencode-pi`, install the OpenCode CLI on machines where you want to use that provider bridge.
 
 ## Quick start
-
-### 1. Install Pi
-
-Install Pi using its normal installation method and confirm:
-
-```bash
-pi --version
-```
-
-### 2. Clone this repository
-
-SSH:
 
 ```bash
 git clone git@github.com:thieung/pi-setup.git
 cd pi-setup
-```
-
-or HTTPS:
-
-```bash
-git clone https://github.com/thieung/pi-setup.git
-cd pi-setup
-```
-
-### 3. Bootstrap the profiles
-
-```bash
 ./scripts/bootstrap.sh
 ```
 
-Bootstrap does three things:
-
-1. checks that `node` and `pi` are available;
-2. installs the `pi-profile` launcher into `~/.local/bin`;
-3. materializes both `pi` and `pi-dev` under `~/.pi/profiles/`.
-
-If `~/.local/bin` is not already in your shell `PATH`, add:
+If `~/.local/bin` is not already on `PATH`:
 
 ```bash
 export PATH="$HOME/.local/bin:$PATH"
 ```
 
-For a permanent Bash setup:
-
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-source ~/.bashrc
-```
-
-On macOS with zsh:
-
-```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-```
-
-### 4. Launch Pi
-
-Stable profile:
+Then launch either profile:
 
 ```bash
 pi-profile pi
-```
-
-Development profile:
-
-```bash
 pi-profile pi-dev
 ```
 
-Any remaining arguments are forwarded to Pi:
+Pass normal Pi arguments after the profile name:
 
 ```bash
 pi-profile pi --provider openai-codex
-pi-profile pi --model <model>
-pi-profile pi-dev --provider <provider> --model <model>
+pi-profile pi-dev --model <model>
 ```
 
-List the profiles supported by the current launcher:
+List profiles:
 
 ```bash
 pi-profile list
 ```
 
-## How profile inheritance works
+## What bootstrap does
 
-### Base configuration
+`./scripts/bootstrap.sh` verifies that `node` and `pi` exist, installs the `pi-profile` launcher into `~/.local/bin`, then materializes both profiles.
 
-`config/base/settings.json` is the shared stable Pi manifest.
+Generated runtime directories:
 
-Current sample:
+```text
+~/.pi/profiles/pi/
+├── settings.json
+├── .pi-setup.json
+└── sessions/
 
-```json
-{
-  "packages": [
-    "npm:statusline-pi",
-    "npm:advisor-pi",
-    "npm:timestamp-pi"
-  ]
-}
+~/.pi/profiles/pi-dev/
+├── settings.json
+├── .pi-setup.json
+└── sessions/
 ```
 
-These packages are examples, not yet the final personal extension set.
+These directories are generated machine state. Do not commit them back into the repository.
 
-### Stable profile
+## Profile inheritance
 
-`profiles/pi/profile.json` points at the base configuration:
+The stable profile points to the base settings:
 
 ```json
 {
   "name": "pi",
-  "description": "Stable daily-driver profile",
   "extends": "../../config/base/settings.json",
   "packages": [],
   "localExtensions": []
 }
 ```
 
-### Development profile
-
-`profiles/pi-dev/profile.json` inherits `pi`:
-
-```json
-{
-  "name": "pi-dev",
-  "description": "Development profile: stable base plus experimental/local extensions",
-  "extends": "../pi/profile.json",
-  "packages": [],
-  "localExtensions": [
-    "../../extensions"
-  ]
-}
-```
-
-The renderer recursively resolves `extends`, merges package arrays, removes duplicates, and resolves local extension paths.
-
-Conceptually:
-
-```text
-base packages
-    +
-pi packages
-    +
-pi-dev packages
-    +
-pi-dev local extensions
-    =
-rendered pi-dev profile
-```
-
-## What gets generated on each machine
-
-Running a profile calls `materialize-profile.mjs` before launching Pi.
-
-For example:
-
-```text
-~/.pi/profiles/pi/
-├── settings.json
-├── sessions/
-└── .pi-setup.json
-```
-
-and:
-
-```text
-~/.pi/profiles/pi-dev/
-├── settings.json
-├── sessions/
-└── .pi-setup.json
-```
-
-`settings.json` is generated from the repository definitions. `.pi-setup.json` contains lightweight metadata about which repository/profile generated that directory.
-
-The generated directories are runtime artifacts. The Git repository remains the source of truth.
-
-## Adding extensions
-
-There are two useful categories.
-
-### 1. Stable npm extension
-
-If an extension is trusted and should be available on every machine, add it to:
-
-```text
-config/base/settings.json
-```
-
-Example:
-
-```json
-{
-  "packages": [
-    "npm:statusline-pi",
-    "npm:advisor-pi",
-    "npm:timestamp-pi",
-    "npm:opencode-pi"
-  ]
-}
-```
-
-Then commit the change:
-
-```bash
-git add config/base/settings.json
-git commit -m "feat: add opencode-pi to stable profile"
-git push
-```
-
-On another machine:
-
-```bash
-cd pi-setup
-git pull
-pi-profile pi
-```
-
-The launcher materializes the new profile before starting Pi.
-
-### 2. Experimental npm extension
-
-If an npm extension should be tested without touching the stable profile, add it only to:
-
-```text
-profiles/pi-dev/profile.json
-```
-
-For example:
+The development profile extends `pi` and adds only its differences:
 
 ```json
 {
   "name": "pi-dev",
   "extends": "../pi/profile.json",
   "packages": [
-    "npm:some-experimental-extension"
+    "npm:advisor-pi@1.1.0",
+    "npm:opencode-pi@1.3.0"
   ],
   "localExtensions": [
     "../../extensions"
@@ -353,245 +229,163 @@ For example:
 }
 ```
 
-Now:
+The renderer merges package lists and removes duplicates.
 
-```bash
-pi-profile pi
+## Adding or promoting extensions
+
+### Stable extension
+
+Add a pinned package to `config/base/settings.json`:
+
+```json
+{
+  "packages": [
+    "npm:statusline-pi@1.3.1",
+    "npm:some-extension@x.y.z"
+  ]
+}
 ```
 
-does not include it, while:
+After testing, materialize again or restart through `pi-profile`.
 
-```bash
-pi-profile pi-dev
-```
+### Dev-only npm extension
 
-does.
+Add it only to `profiles/pi-dev/profile.json`.
 
-### 3. Local or unpublished source extension
+### Local or unpublished source extension
 
-Use `extensions/` for code that is under development or not published to npm.
-
-Typical examples from `luongnv89/pi-extensions` are extensions that are intended to run from source with Pi's `-e` option.
-
-You can clone or symlink source into this directory, for example:
+Place or symlink it under:
 
 ```text
 extensions/
-├── my-extension/
-└── another-experiment/
 ```
 
-`pi-dev` currently adds the configured local extension path when launching Pi. The stable `pi` profile does not.
+`pi-dev` loads that directory as an extension overlay; `pi` does not.
 
-A future revision should make this more deterministic by introducing a source-extension manifest with repository URL + commit/tag instead of relying on manually populated local directories.
+### Promotion workflow
 
-## Recommended workflow
+Use this flow:
 
-### Daily work
-
-Use:
-
-```bash
-pi-profile pi
+```text
+source/local experiment
+        ↓
+     pi-dev
+        ↓
+ test behavior / compatibility
+        ↓
+ pin a released version
+        ↓
+ config/base/settings.json
+        ↓
+       pi
 ```
 
-Only promote extensions/configuration here after they are considered stable enough for normal work.
+This keeps experimental changes away from the daily profile until they are intentionally promoted.
 
-### Extension development or evaluation
-
-Use:
+## New machine / VPS
 
 ```bash
-pi-profile pi-dev
-```
-
-This is where you can:
-
-- test extensions before adding them to the stable package list;
-- run unpublished source extensions;
-- modify extension code and reload Pi;
-- experiment with provider bridges or UI extensions;
-- test configuration changes without polluting the daily profile.
-
-### Promote an extension from `pi-dev` to `pi`
-
-Once an extension is proven stable:
-
-1. remove it from the `pi-dev`-specific package list if present;
-2. add it to `config/base/settings.json`;
-3. commit and push;
-4. launch both profiles and verify behavior.
-
-This makes the stable setup auditable through Git history.
-
-## Using the repo on a VPS
-
-The intended VPS flow is intentionally the same as local setup:
-
-```bash
-git clone https://github.com/thieung/pi-setup.git
+git clone git@github.com:thieung/pi-setup.git
 cd pi-setup
 ./scripts/bootstrap.sh
 pi-profile pi
 ```
 
-For headless environments, keep in mind that some Pi extensions may depend on local applications, a browser, desktop permissions, notification systems, or other machine capabilities. Such extensions should either be avoided on VPS instances or eventually placed behind machine-specific overlays.
+Provider credentials and OAuth/API login state are intentionally not copied by this repository. Authenticate providers separately on each machine.
 
-A likely future profile structure is:
-
-```text
-pi
-├── stable shared configuration
-├── local overlay
-└── vps overlay
-```
-
-but machine-specific overlays are not implemented yet.
-
-## Updating an existing machine
-
-Pull repository changes:
+To update an existing machine:
 
 ```bash
 cd ~/path/to/pi-setup
-git pull
+git pull --ff-only
+./scripts/bootstrap.sh
 ```
 
-Then simply launch the profile again:
+## Inspect a profile without launching Pi
 
-```bash
-pi-profile pi
-```
-
-or:
-
-```bash
-pi-profile pi-dev
-```
-
-Profiles are materialized before Pi starts, so there is no separate manual render step required for normal use.
-
-You can also explicitly inspect the merged profile without launching Pi:
+Render the merged profile:
 
 ```bash
 node scripts/render-profile.mjs pi
 node scripts/render-profile.mjs pi-dev
 ```
 
-## Inspecting generated profiles
+Materialize explicitly:
 
-Stable profile:
+```bash
+node scripts/materialize-profile.mjs pi
+node scripts/materialize-profile.mjs pi-dev
+```
+
+Inspect generated settings:
 
 ```bash
 cat ~/.pi/profiles/pi/settings.json
-```
-
-Development profile:
-
-```bash
 cat ~/.pi/profiles/pi-dev/settings.json
 ```
 
-Generation metadata:
+## Secrets and machine-specific state
 
-```bash
-cat ~/.pi/profiles/pi/.pi-setup.json
-cat ~/.pi/profiles/pi-dev/.pi-setup.json
-```
+Do not commit:
 
-This is useful when diagnosing whether a problem comes from the repository definition or from Pi/runtime state.
+- provider credentials or auth files;
+- OAuth tokens or API keys;
+- session history;
+- caches;
+- generated package directories;
+- absolute machine paths;
+- extension configuration containing tokens;
+- per-machine runtime state.
 
-## Secrets and sensitive state
+This repository manages configuration, not secrets.
 
-Do **not** put these in this repository:
+## What profile isolation means
 
-- provider API keys;
-- OAuth tokens;
-- `auth.json` or equivalent credential stores;
-- sessions/conversation history;
-- extension configuration containing passwords or tokens;
-- machine-specific absolute paths unless they are explicitly templated;
-- caches or generated package directories;
-- local application credentials.
+Each profile receives separate Pi config and session directories, so package manifests, profile-generated config, and session history do not need to collide.
 
-Authentication should be performed separately on each machine unless a dedicated secure secret-management mechanism is added later.
+It is not an OS/process sandbox. Profiles may still share:
 
-This separation is intentional: the repo should be safe to clone onto another machine without also copying identity/authentication state.
+- the same Git working tree;
+- environment variables;
+- provider credentials outside the Pi profile directory;
+- ports;
+- Docker daemon/containers;
+- SSH agent;
+- filesystem permissions;
+- external CLI configuration.
 
-## What profile isolation does and does not isolate
+## Relationship to pi-profile-manager
 
-Profile isolation currently covers Pi-level configuration and sessions via:
+[`thieung/pi-profile-manager`](https://github.com/thieung/pi-profile-manager) remains a useful reference for stronger lifecycle management and profile isolation patterns.
 
-```text
-PI_CODING_AGENT_DIR
-PI_CODING_AGENT_SESSION_DIR
-```
+This repo intentionally starts smaller. Its primary job is to make the actual Pi configuration portable and Git-managed while preserving the simple `pi` / `pi-dev` model.
 
-This is useful for testing because `pi-dev` can have its own Pi state without overwriting `pi`.
+Useful ideas that can later be absorbed here include:
 
-It does **not** isolate:
-
-- the current Git repository;
-- filesystem writes performed by the agent;
-- environment variables inherited from the shell;
-- ports and background processes;
-- Docker containers;
-- SSH credentials;
-- external CLI configuration;
-- cloud accounts;
-- OS-level permissions.
-
-If stronger isolation is required, use containers, VMs, separate OS users, worktrees, or another sandboxing layer in addition to profiles.
-
-## Why not just copy `~/.pi/agent`?
-
-Copying the entire Pi directory mixes several different concerns:
-
-```text
-configuration
-+ installed package state
-+ generated files
-+ cache
-+ sessions
-+ credentials
-+ machine-local state
-```
-
-This repo tries to keep only the first concern in Git and regenerate the rest where possible.
-
-Benefits:
-
-- easier review through Git diffs;
-- fewer machine-specific paths;
-- lower chance of committing credentials;
-- simpler laptop/VPS migration;
-- reproducible extension lists;
-- cleaner stable-vs-development separation.
-
-## Relationship with pi-profile-manager
-
-[`thieung/pi-profile-manager`](https://github.com/thieung/pi-profile-manager) already contains broader profile-management patterns, including profile-specific `PI_CODING_AGENT_DIR` and session directories.
-
-This repository currently has a narrower purpose:
-
-```text
-pi-profile-manager
-    broader runtime/profile management
-
-pi-setup
-    personal, portable Pi configuration source of truth
-```
-
-Over time, useful functionality such as `doctor`, `diff`, inventory, validation, and safer profile lifecycle management can be absorbed here or shared with `pi-profile-manager` to avoid maintaining overlapping logic.
+- `doctor` checks;
+- inventory/status output;
+- managed updates;
+- stronger cross-platform support;
+- ownership receipts and safer executable replacement.
 
 ## Troubleshooting
 
-### `pi: command not found`
+### `pi-profile: command not found`
+
+Add the install directory to `PATH`:
+
+```bash
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+Then add the same line to your shell startup file.
+
+### `pi is not installed`
 
 Install Pi first and verify:
 
 ```bash
-which pi
+command -v pi
 pi --version
 ```
 
@@ -601,132 +395,67 @@ Then rerun:
 ./scripts/bootstrap.sh
 ```
 
-### `pi-profile: command not found`
+### Profile changes do not appear
 
-Check whether the launcher exists:
-
-```bash
-ls -l ~/.local/bin/pi-profile
-```
-
-Then ensure `~/.local/bin` is in `PATH`:
+Relaunch through the wrapper:
 
 ```bash
-export PATH="$HOME/.local/bin:$PATH"
+pi-profile pi
+# or
+pi-profile pi-dev
 ```
 
-### Profile changes are not showing up
-
-Check the rendered result:
+You can also inspect the renderer directly:
 
 ```bash
 node scripts/render-profile.mjs pi-dev
 ```
 
-Then launch again:
+### `opencode-pi` provider is unavailable
 
-```bash
-pi-profile pi-dev
-```
+Verify the OpenCode CLI exists on the machine and works independently. The Pi extension is a bridge; it cannot expose models if its backing CLI is missing or unavailable.
 
-Materialization happens on every launch.
+### A local extension should not affect stable Pi
 
-### Stable and dev sessions appear mixed
-
-Verify environment values from the launcher logic and inspect:
-
-```bash
-ls ~/.pi/profiles/pi/sessions
-ls ~/.pi/profiles/pi-dev/sessions
-```
-
-Each profile should use a different session directory.
-
-### An extension works locally but not on VPS
-
-Check whether the extension depends on:
-
-- a desktop application;
-- a local CLI not installed on the VPS;
-- browser/GUI permissions;
-- an external config file outside `PI_CODING_AGENT_DIR`;
-- environment variables or credentials;
-- a manually cloned source directory under `extensions/`.
-
-Portable profile configuration does not automatically make every extension portable.
+Keep it under `extensions/` and use `pi-profile pi-dev`. The stable profile has no local-extension overlay.
 
 ## Current limitations
 
-This repository is still early-stage. Current limitations include:
+This is intentionally a small first version:
 
-- only `pi` and `pi-dev` are wired into the launcher;
-- the stable extension list is still a sample set;
-- source extensions are not yet pinned by repository commit/tag;
-- no `sync`, `doctor`, or `diff` commands yet;
-- no machine-specific overlays for local vs VPS;
-- no Windows-native setup flow;
-- no CI validation yet;
-- bootstrap expects Node and Pi to already exist;
-- external extension configs are not yet modeled declaratively.
+- macOS/Linux first;
+- no automatic Git clone/update for source extensions yet;
+- no `sync`, `doctor`, or `diff` subcommands yet;
+- no credentials migration;
+- no automatic promotion from dev to stable;
+- no CI profile validation yet.
 
 ## Roadmap
 
-Near-term improvements:
+Planned improvements:
 
-- [ ] Replace sample packages with the actual stable extension set.
-- [ ] Add selected extensions from `luongnv89/pi-extensions`.
-- [ ] Add a pinned source-extension manifest (`repo`, `ref`, `path`).
-- [ ] Add `pi-profile sync`.
-- [ ] Add `pi-profile doctor`.
-- [ ] Add `pi-profile diff`.
-- [ ] Add profile inventory/status output.
-- [ ] Add CI to render and validate every profile.
-- [ ] Add local/VPS machine overlays where required.
-- [ ] Define a safe pattern for external extension config files.
-- [ ] Reuse or consolidate relevant logic from `pi-profile-manager`.
-
-A possible later structure:
-
-```text
-config/
-├── base/
-├── machines/
-│   ├── local/
-│   └── vps/
-└── extensions/
-
-profiles/
-├── pi/
-├── pi-dev/
-└── custom-profile/
-```
-
-The important constraint should remain the same: profiles compose from shared layers instead of duplicating complete Pi directories.
+1. `pi-profile sync` — refresh pinned source dependencies.
+2. `pi-profile doctor` — validate Pi, Node, paths, manifests, and optional CLIs.
+3. `pi-profile diff` — show effective differences between `pi` and `pi-dev`.
+4. Source-extension manifest with Git repository + commit pinning.
+5. CI validation for profile inheritance and generated settings.
+6. Better macOS/Linux/VPS bootstrap behavior.
+7. Selectively absorb mature lifecycle patterns from `pi-profile-manager`.
 
 ## Design principles
 
-1. **Git is the configuration source of truth.**
-2. **Runtime state stays outside the repository.**
-3. **Stable and experimental profiles should not drift.**
-4. **Prefer declarative package manifests over copied package directories.**
-5. **Do not store secrets in the repo.**
-6. **A new machine should require as few manual steps as practical.**
-7. **Development overlays should be disposable.**
-8. **Promoting a tested extension to stable should be a small Git diff.**
+1. **Git is the source of truth.**
+2. **Stable stays boring.** Daily Pi should contain only proven extensions.
+3. **Experiments are overlays.** `pi-dev` inherits stable configuration.
+4. **Versions are pinned.** Reproducibility matters across machines.
+5. **Secrets never belong in the setup repo.**
+6. **Do not duplicate config.** Shared settings belong in the base.
+7. **Do not stack orchestration layers accidentally.** Subagent/delegation tooling stays explicit and labs-only unless deliberately promoted.
+8. **Generated runtime state is disposable.** Rebuild it from the repository.
 
-## References
+## Upstream references
 
-- Pi setup portability pattern: https://github.com/mrgoonie/zuey-pi-setup
-- Pi extensions used as the primary extension source: https://github.com/luongnv89/pi-extensions
-- Existing profile-management patterns: https://github.com/thieung/pi-profile-manager
-
-## Status
-
-The basic profile system is working:
-
-```text
-pi       = stable base
-pi-dev   = pi + experimental/local extension overlay
-```
-
-The next major step is to replace the sample package list with the real daily setup and make source-extension installation reproducible across local machines and VPS hosts.
+- Pi Coding Agent: https://github.com/earendil-works/pi-coding-agent
+- zuey-pi-setup: https://github.com/mrgoonie/zuey-pi-setup
+- pi-profile-manager: https://github.com/thieung/pi-profile-manager
+- luongnv89/pi-extensions: https://github.com/luongnv89/pi-extensions
