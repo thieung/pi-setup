@@ -1,0 +1,9 @@
+{
+  "name": "pi-dev",
+  "description": "Development profile: stable base plus experimental/local extensions",
+  "extends": "../pi/profile.json",
+  "packages": [],
+  "localExtensions": [
+    "../../extensions"
+  ]
+}

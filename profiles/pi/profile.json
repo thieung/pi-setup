@@ -1,0 +1,7 @@
+{
+  "name": "pi",
+  "description": "Stable daily-driver profile",
+  "extends": "../../config/base/settings.json",
+  "packages": [],
+  "localExtensions": []
+}

@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+PROFILE="${1:-}"
+if [[ $# -gt 0 ]]; then shift; fi
+
+case "$PROFILE" in
+  pi|pi-dev) ;;
+  list)
+    printf '%s\n' pi pi-dev
+    exit 0
+    ;;
+  *)
+    echo "usage: pi-profile <pi|pi-dev|list> [pi args...]" >&2
+    exit 2
+    ;;
+esac
+
+PROFILE_DIR="$HOME/.pi/profiles/$PROFILE"
+node "$ROOT/scripts/materialize-profile.mjs" "$PROFILE" >/dev/null
+
+export PI_PROFILE="$PROFILE"
+export PI_CODING_AGENT_DIR="$PROFILE_DIR"
+export PI_CODING_AGENT_SESSION_DIR="$PROFILE_DIR/sessions"
+
+extra=()
+while IFS= read -r ext; do
+  [[ -z "$ext" ]] && continue
+  if [[ -d "$ext" ]]; then
+    extra+=("-e" "$ext")
+  fi
+done < <(
+  node "$ROOT/scripts/render-profile.mjs" "$PROFILE" |
+  node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s);for(const p of x.localExtensions||[])console.log(p)})'
+)
+
+exec pi "${extra[@]}" "$@"
