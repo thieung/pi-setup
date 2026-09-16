@@ -10,16 +10,26 @@ case "$COMMAND" in
     exec node "$ROOT/scripts/sync-source-extensions.mjs" "$@"
     ;;
   list)
-    printf '%s\n' pi pi-dev
-    exit 0
+    exec node "$ROOT/scripts/manage-profiles.mjs" list
     ;;
-  pi|pi-dev)
-    PROFILE="$COMMAND"
+  add)
+    exec node "$ROOT/scripts/manage-profiles.mjs" add "$@"
+    ;;
+  remove)
+    exec node "$ROOT/scripts/manage-profiles.mjs" remove "$@"
+    ;;
+  "")
+    echo "usage: pi-profile <profile|list|add|remove|sync> [args...]" >&2
+    exit 2
     ;;
   *)
-    echo "usage: pi-profile <pi|pi-dev|list|sync> [args...]" >&2
-    echo "       pi-profile sync [--all] [--dry-run]" >&2
-    exit 2
+    PROFILE="$COMMAND"
+    if [[ ! -f "$ROOT/profiles/$PROFILE/profile.json" ]]; then
+      echo "unknown profile: $PROFILE" >&2
+      echo "available profiles:" >&2
+      node "$ROOT/scripts/manage-profiles.mjs" list >&2
+      exit 2
+    fi
     ;;
 esac
 
