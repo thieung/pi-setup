@@ -1,8 +1,11 @@
 {
   "name": "pi-dev",
-  "description": "Development profile: stable base plus experimental/local extensions",
+  "description": "Development profile: stable base plus selected experimental extensions",
   "extends": "../pi/profile.json",
-  "packages": [],
+  "packages": [
+    "npm:advisor-pi@1.1.0",
+    "npm:opencode-pi@1.3.0"
+  ],
   "localExtensions": [
     "../../extensions"
   ]

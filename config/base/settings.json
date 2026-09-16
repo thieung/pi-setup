@@ -1,7 +1,5 @@
 {
   "packages": [
-    "npm:statusline-pi",
-    "npm:advisor-pi",
-    "npm:timestamp-pi"
+    "npm:statusline-pi@1.3.1"
   ]
 }
