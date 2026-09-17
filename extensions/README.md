@@ -12,6 +12,7 @@ The `pi-dev` profile may add npm packages in `profiles/pi-dev/profile.json` and 
 | `statusline-pi@1.3.1` | `pi`, inherited by `pi-dev` | npm | https://github.com/luongnv89/pi-extensions/tree/main/extensions/statusline-pi |
 | `advisor-pi@1.1.0` | `pi-dev` | npm | https://github.com/luongnv89/pi-extensions/tree/main/extensions/advisor-pi |
 | `opencode-pi@1.3.0` | `pi-dev` | npm | https://github.com/luongnv89/pi-extensions/tree/main/extensions/opencode-pi |
+| `pi-multix@0.1.5` | `pi-dev` | npm | https://github.com/bestagentkits/pi-multix |
 
 ## Labs-only / not enabled by default
 
@@ -20,4 +21,4 @@ The `pi-dev` profile may add npm packages in `profiles/pi-dev/profile.json` and 
 
 These are intentionally not auto-enabled in the daily profile because orchestration is handled elsewhere in the user's stack.
 
-See [`docs/extensions/`](../docs/extensions/) for the local documentation and upstream references.
+See [`docs/extensions/`](../docs/extensions/) for local documentation and upstream references.
