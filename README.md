@@ -1,5 +1,7 @@
 # pi-setup
 
+**English** | [Tiếng Việt](README.vi.md)
+
 Portable, reproducible Pi Coding Agent setup for multiple machines and multiple profiles.
 
 The goal is simple: keep one Git repository as the source of truth for Pi configuration, clone it onto a laptop, workstation, or VPS, and switch between stable, development, or custom profiles without duplicating the whole setup.
