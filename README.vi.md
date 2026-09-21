@@ -26,7 +26,7 @@ Repo này đi theo hướng khác:
 | Profile | Mục đích | Kế thừa | Extensions được bật |
 |---|---|---|---|
 | `pi` | Dùng hằng ngày, ổn định | Base config | `statusline-pi@1.3.1` |
-| `pi-dev` | Test extension/provider | `pi` | stable set + `advisor-pi@1.1.0`, `opencode-pi@1.3.0`, optional source overlay |
+| `pi-dev` | Test extension/provider | `pi` | stable set + `advisor-pi@1.1.0`, `opencode-pi@1.3.0`, `pi-multix@0.1.5`, `pi-subagents@0.70.0`, `pi-model-fallback@0.4.0`, optional source overlay |
 | custom profiles | Các biến thể theo mục đích riêng | bất kỳ profile nào đang tồn tại | định nghĩa theo từng profile |
 
 Quy tắc mặc định quan trọng:
@@ -117,6 +117,9 @@ pi-dev
 ├── inherits pi
 ├── advisor-pi@1.1.0
 ├── opencode-pi@1.3.0
+├── pi-multix@0.1.5
+├── pi-subagents@0.70.0
+├── pi-model-fallback@0.4.0
 └── optional pinned source extensions
 ```
 
@@ -284,6 +287,8 @@ Các command hữu ích tiếp theo:
 - [`statusline-pi`](docs/extensions/statusline-pi.md)
 - [`advisor-pi`](docs/extensions/advisor-pi.md)
 - [`opencode-pi`](docs/extensions/opencode-pi.md)
+- [`pi-subagents`](docs/extensions/pi-subagents.md)
+- [`pi-model-fallback`](docs/extensions/pi-model-fallback.md)
 - [`subagents-pi`](docs/extensions/subagents-pi.md)
 - [`pi-delegator`](docs/extensions/pi-delegator.md)
 - [Extension index](docs/extensions/README.md)

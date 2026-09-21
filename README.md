@@ -26,7 +26,7 @@ This repo takes a different approach:
 | Profile | Purpose | Inherits | Enabled extensions |
 |---|---|---|---|
 | `pi` | Stable daily work | Base config | `statusline-pi@1.3.1` |
-| `pi-dev` | Extension/provider testing | `pi` | stable set + `advisor-pi@1.1.0`, `opencode-pi@1.3.0`, optional source overlay |
+| `pi-dev` | Extension/provider testing | `pi` | stable set + `advisor-pi@1.1.0`, `opencode-pi@1.3.0`, `pi-multix@0.1.5`, `pi-subagents@0.70.0`, `pi-model-fallback@0.4.0`, optional source overlay |
 | custom profiles | Purpose-specific variants | any existing profile | defined per profile |
 
 The important default rule is:
@@ -117,6 +117,9 @@ pi-dev
 ├── inherits pi
 ├── advisor-pi@1.1.0
 ├── opencode-pi@1.3.0
+├── pi-multix@0.1.5
+├── pi-subagents@0.70.0
+├── pi-model-fallback@0.4.0
 └── optional pinned source extensions
 ```
 
