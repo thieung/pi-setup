@@ -21,9 +21,14 @@ function listProfiles() {
     .sort();
 }
 
+const reservedNames = new Set(["list", "add", "remove", "sync", "doctor", "diff"]);
+
 function assertValidName(name) {
   if (!name || !namePattern.test(name)) {
     throw new Error("profile name must match /^[a-z0-9][a-z0-9._-]*$/");
+  }
+  if (reservedNames.has(name)) {
+    throw new Error(`profile name is reserved for a command: ${name}`);
   }
 }
 

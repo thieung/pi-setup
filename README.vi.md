@@ -199,6 +199,8 @@ pi-profile list
 pi-profile add <name> [--extends <profile>]
 pi-profile remove <name>
 pi-profile sync [--all] [--dry-run]
+pi-profile doctor
+pi-profile diff <a> <b>
 ```
 
 Ví dụ:
@@ -264,11 +266,10 @@ git pull --ff-only
 
 Các command hữu ích tiếp theo:
 
-1. `pi-profile doctor` — kiểm tra Pi, Node, Git, manifests, source pins, optional CLIs và generated profiles.
-2. `pi-profile diff` — hiển thị effective differences giữa bất kỳ hai profile nào.
-3. CI validation cho profile rendering và source manifest schema.
-4. Optional source-extension promotion helper.
-5. Cải thiện bootstrap cho macOS/Linux/VPS.
+1. Optional source-extension promotion helper.
+2. Cải thiện bootstrap cho macOS/Linux/VPS.
+
+`doctor` và `diff` đã có; test chạy bằng `node --test "test/*.test.mjs"` (cũng chạy trong CI). Các tên `doctor`, `diff`, `list`, `add`, `remove`, `sync` được dành riêng, không dùng làm tên profile.
 
 ## Nguyên tắc thiết kế
 

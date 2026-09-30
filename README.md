@@ -182,7 +182,11 @@ pi-profile list
 pi-profile add <name> [--extends <profile>]
 pi-profile remove <name>
 pi-profile sync [--all] [--dry-run]
+pi-profile doctor
+pi-profile diff <a> <b>
 ```
+
+`doctor` checks node/git/pi, the source manifest (SHA pins), every profile (renders, pinned npm packages, local extension paths) and generated settings. It exits 1 on errors. `diff` shows packages, local extensions and settings that differ between two effective profiles. `doctor`, `diff`, `list`, `add`, `remove` and `sync` are reserved and cannot be profile names.
 
 Examples:
 
@@ -200,11 +204,10 @@ pi-profile sync --dry-run
 
 Next useful commands:
 
-1. `pi-profile doctor` — validate Pi, Node, Git, manifests, source pins, optional CLIs, and generated profiles.
-2. `pi-profile diff` — show effective differences between any two profiles.
-3. CI validation for profile rendering and source manifest schema.
-4. Optional source-extension promotion helper.
-5. Better macOS/Linux/VPS bootstrap behavior.
+1. Optional source-extension promotion helper.
+2. Better macOS/Linux/VPS bootstrap behavior.
+
+Tests run with `node --test "test/*.test.mjs"` (also in CI).
 
 ## Design principles
 

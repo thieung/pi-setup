@@ -18,8 +18,14 @@ case "$COMMAND" in
   remove)
     exec node "$ROOT/scripts/manage-profiles.mjs" remove "$@"
     ;;
+  doctor)
+    exec node "$ROOT/scripts/doctor.mjs" "$@"
+    ;;
+  diff)
+    exec node "$ROOT/scripts/diff-profiles.mjs" "$@"
+    ;;
   "")
-    echo "usage: pi-profile <profile|list|add|remove|sync> [args...]" >&2
+    echo "usage: pi-profile <profile|list|add|remove|sync|doctor|diff> [args...]" >&2
     exit 2
     ;;
   *)
