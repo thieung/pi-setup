@@ -25,8 +25,8 @@ Repo này đi theo hướng khác:
 
 | Profile | Mục đích | Kế thừa | Extensions được bật |
 |---|---|---|---|
-| `pi` | Dùng hằng ngày, ổn định | Base config | `statusline-pi@1.3.1` |
-| `pi-dev` | Test extension/provider | `pi` | stable set + `advisor-pi@1.1.0`, `opencode-pi@1.3.0`, `pi-multix@0.1.5`, `pi-subagents@0.70.0`, `pi-model-fallback@0.4.0`, optional source overlay |
+| `pi` | Dùng hằng ngày, ổn định | Base config | `statusline-pi@1.3.1`, `@juicesharp/rpiv-ask-user-question@2.11.0`, `@99percentpeople/pi-todo@1.2.8`, `@pi-unipi/notify@2.20.5`, `@tmustier/pi-session-recap@0.5.1`, `pi-web-access@0.33.0` |
+| `pi-dev` | Test extension/provider | `pi` | stable set + `advisor-pi@1.1.0`, `opencode-pi@1.3.0`, `pi-multix@0.1.5`, `pi-subagents@0.70.0`, `pi-model-fallback@0.4.0`, `pi-mcp-adapter@3.3.0`, `pi-goal-x@0.31.9`, `pi-background-tasks@2.6.8`, `pi-simplify@0.2.3`, `@juicesharp/rpiv-btw@2.11.0`, `timestamp-pi@0.3.0`, `cache-warm@0.3.0`, optional source overlay |
 | custom profiles | Các biến thể theo mục đích riêng | bất kỳ profile nào đang tồn tại | định nghĩa theo từng profile |
 
 Quy tắc mặc định quan trọng:
@@ -111,7 +111,12 @@ Bộ package được bật mặc định cố ý giữ nhỏ và pin version:
 
 ```text
 pi
-└── statusline-pi@1.3.1
+├── statusline-pi@1.3.1
+├── @juicesharp/rpiv-ask-user-question@2.11.0
+├── @99percentpeople/pi-todo@1.2.8
+├── @pi-unipi/notify@2.20.5
+├── @tmustier/pi-session-recap@0.5.1
+└── pi-web-access@0.33.0
 
 pi-dev
 ├── inherits pi
@@ -120,6 +125,13 @@ pi-dev
 ├── pi-multix@0.1.5
 ├── pi-subagents@0.70.0
 ├── pi-model-fallback@0.4.0
+├── pi-mcp-adapter@3.3.0
+├── pi-goal-x@0.31.9
+├── pi-background-tasks@2.6.8
+├── pi-simplify@0.2.3
+├── @juicesharp/rpiv-btw@2.11.0
+├── timestamp-pi@0.3.0
+├── cache-warm@0.3.0
 └── optional pinned source extensions
 ```
 

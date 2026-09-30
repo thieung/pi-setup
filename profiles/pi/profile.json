@@ -2,6 +2,12 @@
   "name": "pi",
   "description": "Stable daily-driver profile",
   "extends": "../../config/base/settings.json",
-  "packages": [],
+  "packages": [
+    "npm:@juicesharp/rpiv-ask-user-question@2.11.0",
+    "npm:@99percentpeople/pi-todo@1.2.8",
+    "npm:@pi-unipi/notify@2.20.5",
+    "npm:@tmustier/pi-session-recap@0.5.1",
+    "npm:pi-web-access@0.33.0"
+  ],
   "localExtensions": []
 }

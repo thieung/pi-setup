@@ -40,7 +40,10 @@ test("materialize preserves user-set keys, resets managed packages, skips no-op 
   sb.cli("pi");
   const after = JSON.parse(fs.readFileSync(file, "utf8"));
   assert.equal(after.defaultModel, "keep-me");
-  assert.deepEqual(after.packages, ["npm:statusline-pi@1.3.1"]);
+  const rendered = JSON.parse(
+    sb.run(process.execPath, [path.join(sb.root, "scripts", "render-profile.mjs"), "pi"]).stdout
+  );
+  assert.deepEqual(after.packages, rendered.packages);
 
   const before = fs.statSync(file).mtimeMs;
   sb.cli("pi");
