@@ -22,7 +22,19 @@ const rendered = JSON.parse(
 const target = path.join(os.homedir(), ".pi", "profiles", profile);
 fs.mkdirSync(target, { recursive: true });
 fs.mkdirSync(path.join(target, "sessions"), { recursive: true });
-fs.writeFileSync(path.join(target, "settings.json"), JSON.stringify(rendered.settings, null, 2) + "\n");
+// Pi writes user choices (defaultModel, /settings changes) into settings.json,
+// so merge managed keys over the existing file instead of overwriting it.
+const settingsFile = path.join(target, "settings.json");
+let existing = {};
+try {
+  existing = JSON.parse(fs.readFileSync(settingsFile, "utf8"));
+} catch {}
+const merged = JSON.stringify({ ...existing, ...rendered.settings }, null, 2) + "\n";
+let current = null;
+try {
+  current = fs.readFileSync(settingsFile, "utf8");
+} catch {}
+if (current !== merged) fs.writeFileSync(settingsFile, merged);
 
 const meta = {
   profile,

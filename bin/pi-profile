@@ -51,4 +51,4 @@ done < <(
   node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const x=JSON.parse(s);for(const p of x.localExtensions||[])console.log(p)})'
 )
 
-exec pi "${extra[@]}" "$@"
+exec pi ${extra[@]+"${extra[@]}"} "$@"
