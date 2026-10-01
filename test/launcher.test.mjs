@@ -28,6 +28,26 @@ test("launcher rejects unknown profile", (t) => {
   assert.match(r.stderr, /unknown profile/);
 });
 
+test("launcher invoked through an install symlink still finds the repo", (t) => {
+  const sb = makeSandbox();
+  t.after(sb.cleanup);
+  const linkDir = path.join(path.dirname(sb.root), "local-bin");
+  fs.mkdirSync(linkDir);
+  const link = path.join(linkDir, "pi-profile");
+  fs.symlinkSync(path.join(sb.root, "bin", "pi-profile"), link);
+
+  const listed = sb.run("/bin/bash", [link, "list"]);
+  assert.equal(listed.status, 0, listed.stderr);
+  assert.match(listed.stdout, /^pi$/m);
+  assert.match(listed.stdout, /^pi-dev$/m);
+  assert.doesNotMatch(listed.stderr, /Cannot find module/);
+
+  const launched = sb.run("/bin/bash", [link, "pi", "--version"]);
+  assert.equal(launched.status, 0, launched.stderr);
+  assert.match(launched.stdout, /^pi --version$/m);
+});
+
+
 test("materialize preserves user-set keys, resets managed packages, skips no-op writes", (t) => {
   const sb = makeSandbox();
   t.after(sb.cleanup);

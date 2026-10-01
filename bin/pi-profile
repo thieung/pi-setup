@@ -1,7 +1,19 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# install.sh links this file into ~/.local/bin. BASH_SOURCE is that link, so
+# dirname/.. would be ~/.local instead of this repo. macOS bash 3.2 has no readlink -f.
+SOURCE="${BASH_SOURCE[0]}"
+while [[ -L "$SOURCE" ]]; do
+  DIR="$(cd -P "$(dirname "$SOURCE")" && pwd -P)"
+  LINK="$(readlink "$SOURCE")"
+  if [[ "$LINK" == /* ]]; then
+    SOURCE="$LINK"
+  else
+    SOURCE="$DIR/$LINK"
+  fi
+done
+ROOT="$(cd -P "$(dirname "$SOURCE")/.." && pwd -P)"
 COMMAND="${1:-}"
 if [[ $# -gt 0 ]]; then shift; fi
 
